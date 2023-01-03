@@ -1,73 +1,79 @@
 import { useContext, useState } from "react";
 import { Link } from "react-router-dom";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+
+import AuthContext from "../context/AuthContext";
+import ToastContext from "../context/ToastContext";
 
 const Login = () => {
-    const {loginUser} = useContext(AuthContext)
+  const { toast } = useContext(ToastContext);
+  const { loginUser } = useContext(AuthContext);
 
-    const [credentials, setcredentials] = useState({
-        email: "",
-        password: ""
-    })
+  const [credentials, setCredentials] = useState({
+    email: "",
+    password: "",
+  });
 
-    const handleInputChange = (e)=>{
-        const {name, value}= e.target
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
 
-        setcredentials({...credentials, [name]: value})
+    setCredentials({ ...credentials, [name]: value });
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    console.log(credentials)
+
+    if (!credentials.email || !credentials.password) {
+      toast.error("please enter all the required fields!");
+      return;
     }
 
-    const handleSubmit = (e)=>{
-        e.preventDefault()
+    loginUser(credentials);
+  };
 
-        if(!credentials || !password){
-          toast.error("pls enter the all required field")
-          return
+  return (
+    <>
+      <h3>Login</h3>
 
-        }
-        loginUser(credentials)
-    }
-  return(
-  <>
-  <ToastContainer autoClose={2000} />
-    <h3>Login</h3>
-
-    <form onSubmit={handleSubmit} >
-      <div className="form-group">
-        <label htmlFor="exampleInput" className="form-label mt-4">
-          Email address
-        </label>
-        <input
-          type="email"
-          className="form-control"
-          id="exampleInput"
-          aria-describedby="emailHelp"
-          name="email"
-          value={credentials.email}
-          onChange={handleInputChange}
-          placeholder="sid@gmail.com"
-          required
-        />
-      </div>
-      <div class="form-group">
-        <label htmlFor="passwordInput" class="form-label mt-4">
-          Password
-        </label>
-        <input
-          type="password"
-          className="form-control"
-          id="passwordInput"
-          value={credentials.password}
-          onChange={handleInputChange}
-          name="password"
-          placeholder="Enter password"
-          required
-        />
-      </div>
-      <input type="submit" value="Login" className="btn btn-primary my-3" ></input>
-      <p>dont have an account <Link to="/register" >create one</Link></p>
-    </form>
-  </>
-  )
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="emailInput" className="form-label mt-4">
+            Email address
+          </label>
+          <input
+            type="email"
+            className="form-control"
+            id="emailInput"
+            aria-describedby="emailHelp"
+            name="email"
+            value={credentials.email}
+            onChange={handleInputChange}
+            placeholder="johndoe@example.com"
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="passwordInput" className="form-label mt-4">
+            Password
+          </label>
+          <input
+            type="password"
+            className="form-control"
+            id="passwordInput"
+            name="password"
+            value={credentials.password}
+            onChange={handleInputChange}
+            placeholder="Enter Password"
+            required
+          />
+        </div>
+        <input type="submit" value="Login" className="btn btn-primary my-3" />
+        <p>
+          Don't have an account ? <Link to="/register">Create One</Link>
+        </p>
+      </form>
+    </>
+  );
 };
+
 export default Login;

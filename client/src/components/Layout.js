@@ -10,4 +10,4 @@ const Layout = ({ navbar=true, Children})=>{
     )
 }
 
-export default Layout
+export default Layout;

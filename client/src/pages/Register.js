@@ -1,98 +1,126 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Link } from "react-router-dom";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import  "../App.css"
+import AuthContext from "../context/AuthContext";
+import ToastContext from "../context/ToastContext";
 
 const Register = () => {
-    const [credentials, setcredentials] = useState({
-        email: "",
-        password: "",
-        confirmPassword:""
-    })
+  const { toast } = useContext(ToastContext);
+  const { registerUser } = useContext(AuthContext);
 
-    const handleInputChange = (e)=>{
-        const {name,value}=e.target
+  const [credentials, setCredentials] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
 
-        setcredentials({...credentials, [name]:value})
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+
+    setCredentials({ ...credentials, [name]: value });
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    console.log(credentials)
+
+    if (
+      !credentials.email ||
+      !credentials.password ||
+      !credentials.confirmPassword
+    ) {
+      toast.error("please enter all the required fields!");
+      return;
     }
 
-    const handleSubmit= (e)=>{
-        e.preventDefault()
-
-        if(!credentials || !password ||!confirmPassword){
-          toast.error("pls enter the all required field")
-          return
-
-        }
-        if(credentials.password!==credentials.confirmPassword){
-          toast.error("password do not match")
-          return
-        }
-
+    if (credentials.password !== credentials.confirmPassword) {
+      toast.error("password do not match!");
+      return;
     }
-  return(
-  <>
-  <ToastContainer autoClose={2000} />
-    <h3>create your account</h3>
 
-    <form onSubmit={handleSubmit} >
-      <div class="form-group">
-        <label for="exampleInput" class="form-label mt-4">
-          Email address
-        </label>
-        <input
-          type="email"
-          class="form-control"
-          id="exampleInput"
-          aria-describedby="emailHelp"
-          name="email"
-          value={credentials.email}
-          onChange={handleInputChange}
-          placeholder="sid@gmail.com"
-          required
-        />
-      </div>
-      <div class="form-group">
-        <label for="passwordInput" class="form-label mt-4">
-          Password
-        </label>
-        <input
-          type="password"
-          class="form-control"
-          id="passwordInput"
-          name="Password"
-          value={credentials.password}
-          onChange={handleInputChange}
-          placeholder="Enter password"
-          required
-        />
-      </div>
+    const userData = { ...credentials, confirmPassword: undefined };
+    registerUser(userData);
+  };
 
-      <div class="form-group">
-        <label for="passwordInput" class="form-label mt-4">
-           confirm Password
-        </label>
+  return (
+    <>
+      <h3>Create your account</h3>
+
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="nameInput" className="form-label mt-4">
+            Your Name
+          </label>
+          <input
+            type="text"
+            className="form-control"
+            id="nameInput"
+            name="name"
+            value={credentials.name}
+            onChange={handleInputChange}
+            placeholder="John Doe"
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="emailInput" className="form-label mt-4">
+            Email address
+          </label>
+          <input
+            type="email"
+            className="form-control"
+            id="emailInput"
+            aria-describedby="emailHelp"
+            name="email"
+            value={credentials.email}
+            onChange={handleInputChange}
+            placeholder="johndoe@example.com"
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="passwordInput" className="form-label mt-4">
+            Password
+          </label>
+          <input
+            type="password"
+            className="form-control"
+            id="passwordInput"
+            name="password"
+            value={credentials.password}
+            onChange={handleInputChange}
+            placeholder="Enter Password"
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="confirmPassword" className="form-label mt-4">
+            Confirm Password
+          </label>
+          <input
+            type="password"
+            className="form-control"
+            id="confirmPassword"
+            name="confirmPassword"
+            value={credentials.confirmPassword}
+            onChange={handleInputChange}
+            placeholder="Enter Password"
+            required
+          />
+        </div>
         <input
-          type="password"
-          class="form-control"
-          id="confirmPassword"
-          name="confirmPassword"
-          value={credentials.confirmPassword}
-          onChange={handleInputChange}
-          placeholder="Enter password"
-          required
+          type="submit"
+          value="Register"
+          className="btn btn-primary my-3"
         />
-      </div>
-      <input
-        type="submit"
-        value="Register"
-        className="btn btn-primary my-3"
-      ></input>
-      <p>
-        already have an account <Link to="/login">Log in</Link>
-      </p>
-    </form>
-  </>
-  )
+        <p>
+          Already have an account ? <Link to="/login">Login</Link>
+        </p>
+      </form>
+    </>
+  );
 };
+
 export default Register;
