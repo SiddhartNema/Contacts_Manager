@@ -1,8 +1,24 @@
-const Home=()=>{
-    return 
+import React, { useContext, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import AuthContext from "../context/AuthContext";
+
+const Home = () => {
+  const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
+  useEffect(() => {
+    !user && navigate("/login", { replace: true });
+  }, []);
+  return (
     <>
-    <h1>home page</h1>
-    this is Home my page
+      <div className="jumbotron">
+        <h1>Welcome {user ? user.name : null}</h1>
+        <hr className="my-4" />
+        <a className="btn btn-info" href="#" role="button">
+          Add Contacts
+        </a>
+      </div>
     </>
-}
-export default Home
+  );
+};
+
+export default Home;
