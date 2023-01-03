@@ -1,4 +1,4 @@
-import { Routes as Switch, Route } from "react-router-dom";
+import { Routes as Switch, Route, BrowserRouter } from "react-router-dom";
 import Layout from "./components/Layout";
 import { AuthContextProvider } from "./context/AuthContext";
 import { ToastContextProvider } from "./context/ToastContext";
@@ -9,6 +9,7 @@ import Register from "./pages/Register"
 
 const App = () => {
   return (
+    <BrowserRouter>
     <ToastContextProvider>
       <AuthContextProvider>
         <Layout>
@@ -21,6 +22,8 @@ const App = () => {
         </Layout>
       </AuthContextProvider>
     </ToastContextProvider>
+    </BrowserRouter>
+    
   );
 };
 
