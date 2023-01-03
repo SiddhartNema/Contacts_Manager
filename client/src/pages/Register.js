@@ -1,115 +1,122 @@
-import React, { useContext, useEffect, useState } from "react";
-import { Context } from "../axious/axioscontext";
-import "../pages/signup.css";
+import { useContext, useState } from "react";
 import { Link } from "react-router-dom";
-import dots from "../images/Dots-Group.png";
-import topCircle from "../images/Ellipse-31.png";
-import bottomCircle from "../images/Ellipse-32.png";
+
+import AuthContext from "../context/AuthContext";
+import ToastContext from "../context/ToastContext";
 
 const Register = () => {
-  const { userSignUp } = useContext(Context);
-  const [isSubmit, setIsSubmit] = useState(false);
-  const [formErr, setFormErr] = useState({});
-  const [userData, setUserData] = useState({
+  const { toast } = useContext(ToastContext);
+  const { registerUser } = useContext(AuthContext);
+
+  const [credentials, setCredentials] = useState({
+    name: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setUserData({ ...userData, [name]: value });
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+
+    setCredentials({ ...credentials, [name]: value });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setFormErr(validate(userData));
-    setIsSubmit(true);
-  };
+  const handleSubmit = (event) => {
+    event.preventDefault();
 
-  useEffect(() => {
-    if (Object.keys(formErr).length === 0 && isSubmit) {
-      userSignUp(userData);
+    if (
+      !credentials.email ||
+      !credentials.password ||
+      !credentials.confirmPassword
+    ) {
+      toast.error("please enter all the required fields!");
+      return;
     }
-  }, [formErr]);
 
-  const validate = (values) => {
-    const err = {};
-    const emailRegex =
-      /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/i;
-    if (!values.email) {
-      err.email = "*email is required";
-    } else if (!emailRegex.test(values.email)) {
-      err.email = "*email is invalid";
+    if (credentials.password !== credentials.confirmPassword) {
+      toast.error("password do not match!");
+      return;
     }
-    if (values.password.length < 6) {
-      err.password = "*password must contain atleast 6 characters";
-    } else if (values.password.length > 12) {
-      err.password = "*password must contain max 12 characters";
-    }
-    if (values.confirmPassword !== values.password) {
-      console.log(values.confirmPassword, values.password);
-      err.confirmPassword = "*password does'nt matched!!!";
-    }
-    return err;
+
+    const userData = { ...credentials, confirmPassword: undefined };
+    registerUser(userData);
   };
 
   return (
     <>
-      <div className="container-1">
-        <img src={topCircle} alt="" className="top-circle" />
-        <div className="signUp-container">
-          <img src={dots} alt="" className="dots-1" />
-          <div className="signUp-header">
-            <h4>Logo</h4>
-            <p>Create New Account</p>
-          </div>
-          <form method="POST" className="signUp-form" onSubmit={handleSubmit}>
-            <div className="email">
-              <input
-                className="email-input"
-                type="text"
-                name="email"
-                placeholder="Mail ID"
-                onChange={handleChange}
-              />
-            </div>
-            <p className="errors" style={{ color: "red" }}>
-              {formErr.email}
-            </p>
-            <div className="password" style={{ position: "relative" }}>
-              <input
-                className="password-input"
-                type="password"
-                name="password"
-                placeholder="Password"
-                onChange={handleChange}
-              />
-            </div>
-            <p className="errors" style={{ color: "red" }}>
-              {formErr.password}
-            </p>
-            <div className="password" style={{ position: "relative" }}>
-              <input
-                className="password-input"
-                type="password"
-                name="confirmPassword"
-                placeholder="Confirm Password"
-                onChange={handleChange}
-              />
-            </div>
-            <p className="errors" style={{ color: "red" }}>
-              {formErr.confirmPassword}
-            </p>
-            <button className="button-1">Sign Up</button>
-            <p>
-              Already have an Account? <Link to="/">SignIn</Link>
-            </p>
-          </form>
-          <img src={dots} alt="" className="dots-2" />
+      <h3>Create your account</h3>
+
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="nameInput" className="form-label mt-4">
+            Your Name
+          </label>
+          <input
+            type="text"
+            className="form-control"
+            id="nameInput"
+            name="name"
+            value={credentials.name}
+            onChange={handleInputChange}
+            placeholder="John Doe"
+            required
+          />
         </div>
-        <img src={bottomCircle} alt="" className="bottom-circle" />
-      </div>
+        <div className="form-group">
+          <label htmlFor="emailInput" className="form-label mt-4">
+            Email address
+          </label>
+          <input
+            type="email"
+            className="form-control"
+            id="emailInput"
+            aria-describedby="emailHelp"
+            name="email"
+            value={credentials.email}
+            onChange={handleInputChange}
+            placeholder="johndoe@example.com"
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="passwordInput" className="form-label mt-4">
+            Password
+          </label>
+          <input
+            type="password"
+            className="form-control"
+            id="passwordInput"
+            name="password"
+            value={credentials.password}
+            onChange={handleInputChange}
+            placeholder="Enter Password"
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="confirmPassword" className="form-label mt-4">
+            Confirm Password
+          </label>
+          <input
+            type="password"
+            className="form-control"
+            id="confirmPassword"
+            name="confirmPassword"
+            value={credentials.confirmPassword}
+            onChange={handleInputChange}
+            placeholder="Enter Password"
+            required
+          />
+        </div>
+        <input
+          type="submit"
+          value="Register"
+          className="btn btn-primary my-3"
+        />
+        <p>
+          Already have an account ? <Link to="/login">Login</Link>
+        </p>
+      </form>
     </>
   );
 };

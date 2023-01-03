@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import AuthContext from "../axious/axioscontext";
-import ToastContext from "../axious/ToastContext";
+import AuthContext from "../context/AuthContext";
+import ToastContext from "../context/ToastContext";
 
 const Navbar = ({ title = "CMS" }) => {
   const navigate = useNavigate();
