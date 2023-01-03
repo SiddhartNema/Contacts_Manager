@@ -3,6 +3,10 @@ require("dotenv").config({path:"./config/config.env"})
 const express = require('express')
 const morgan = require("morgan")
 const connectDB = require('./config/db')
+const mongoose = require("mongoose")
+
+mongoose.set("strictQuery", false);
+
 
 
 const app = express()
@@ -10,7 +14,7 @@ const auth = require("./middlewares/auth")
 
 app.use(express.json())
 app.use(morgan("tiny"))
-
+app.use(require('cors')())
 
 app.get("/",(req,res)=>{
     res.send("hello world")

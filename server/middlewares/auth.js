@@ -9,11 +9,12 @@ module.exports = (req, res,next)=>{
         const token = authHeader.split(" ")[1]  //bearer
 
         jwt.verify(token, process.env.JWT_SECRET, async(err, payload)=>{
+            try{
             if(err){
                 return res.status(401).json({error:"Unauthorized!"})
             }
 
-            try{
+            
                 const user = await User.findOne({_id:payload._id}).select("-password")
                 req.user=user
                 next()

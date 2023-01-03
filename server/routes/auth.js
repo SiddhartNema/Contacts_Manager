@@ -1,87 +1,103 @@
-const router = require("express").Router()
-const bcrypt = require("bcrypt")
-const jwt = require("jsonwebtoken")
+const router = require("express").Router();
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const auth = require("../middlewares/auth");
 
-const User = require("../models/User")
-router.post("/login")
+const User = require("../models/User");
+router.post("/login");
 
+router.post("/register", async (req, res) => {
+  const { name, email, password } = req.body;
 
+  //  check all the mising fields
+  if (!name || !email || !password)
+    return res.status(400).json({ error: ` pls enter all required field` });
 
-router.post("/register", async(req,res)=>{
-    const {name, email, password} = req.body
+  // name validation
+  if (name.length > 25)
+    return res.status(400).json({ error: "name can be less then 25 char" });
 
-    //  check all the mising fields
-    if(!name || !email || !password)
+  // email validation
+
+  const emailReg =
+    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  if (!emailReg.test(email))
+    return res.status(400).json({ error: "pls enter a valid email address" });
+
+  // validation of password
+  if (password.length < 6)
     return res
+      .status(400)
+      .json({ error: "password atleast mut be 6 char long" });
+
+  try {
+    const doesUserAlreadyExits = await User.findOne({ email });
+    if (doesUserAlreadyExits)
+      return res
         .status(400)
-        .json({error : ` pls enter all required field`})
+        .json({
+          error: ` a user with that email [${email}] already exists so pls try diff email`,
+        });
+    const hashedPassword = await bcrypt.hash(password, 12);
 
-        // name validation
-        if(name.length>25) return res.status(400).json({error: "name can be less then 25 char"})
+    const newUser = new User({ name, email, password: hashedPassword });
 
-        // email validation
+    // save the user
+    const result = await newUser.save();
 
-        const emailReg = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-        if(!emailReg.test(email))
-        return res.status(400).json({error: "pls enter a valid email address"})
+    result._doc.password = undefined;
 
-        // validation of password
-        if(password.length<6) return res.status(400).json({ error: "password atleast mut be 6 char long"})
+    return res.status(201).json({ ...result._doc });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: err.message });
+  }
+});
 
-    try{
-        const doesUserAlreadyExits = await User.findOne({email})
-        if(doesUserAlreadyExits) return res.status(400).json({error: ` a user with that email [${email}] already exists so pls try diff email`})
-        const hashedPassword = await bcrypt.hash(password, 12)
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password)
+    return res
+      .status(400)
+      .json({ error: " pls enter all the requiree fields" });
 
-        const newUser = new User({name,email,password: hashedPassword})
+  // email validation
 
-        // save the user
-        const result = await newUser.save()
+  const emailReg =
+    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  if (!emailReg.test(email))
+    return res.status(400).json({ error: "pls enter a valid email address" });
 
-        result._doc.password = undefined
+  try {
+    const doesUserExits = await User.findOne({ email });
 
-        return res.status(201).json({...result._doc})
+    if (!doesUserExits)
+      return res.status(400).json({ error: " invalid email or password" });
 
+    // if there were any user present
+    const doesPasswordMatch = await bcrypt.compare(
+      password,
+      doesUserExits.password
+    );
 
-        
-         
+    if (!doesPasswordMatch)
+      return res.status(400).json({ error: " invalid email or password" });
 
-    }catch(err){
-        console.log(err)
-        return res.status(500).json({ error: err.message })
-    }
-})
+    const payload = { _id: doesUserExits._id };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
 
-router.post("/login", async(req,res)=>{
-    const {email, password} = req.body
-    if(!email || !password)  return res.status(400).json({error: " pls enter all the requiree fields"})
+    const user = { ...doesUserExits._doc, password: undefined };
+    return res.status(200).json({ token, user });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: err.message });
+  }
+});
 
-     // email validation
+router.get("/me", auth, async (req, res) => {
+  return res.status(200).json({ ...req.user._doc });
+});
 
-     const emailReg = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-     if(!emailReg.test(email))
-     return res.status(400).json({error: "pls enter a valid email address"})
-
-    try{
-        const doesUserExits = await User.findOne({email})
-
-        if(!doesUserExits) return res.status(400).json({error: " invalid email or password"})
-
-        // if there were any user present
-        const doesPasswordMatch =  await bcrypt.compare(password, doesUserExits.password)
-
-        if(!doesPasswordMatch) return res.status(400).json({error: " invalid email or password"})
-
-        const payload = {_id: doesUserExits._id}
-        const token = jwt.sign(payload, process.env.JWT_SECRET, {expiresIn:"1h"})
-
-        return res.status(200).json({token})
-
-    }catch(err){
-        console.log(err)
-        return res.status(500).json({ error: err.message })
-
-    }
-})
-
-module.exports=router
+module.exports = router;

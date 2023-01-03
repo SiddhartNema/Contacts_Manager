@@ -1,78 +1,90 @@
-import { useContext, useState } from "react";
-import { Link } from "react-router-dom";
-
-import AuthContext from "../context/AuthContext";
-import ToastContext from "../context/ToastContext";
+import React, { useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "../pages/signup.css";
+// import { Context } from "../axios/axioscontext";
+import { Context } from "../axious/axioscontext";
+import dots from "../images/Dots-Group.png";
+import topCircle from "../images/Ellipse-31.png";
+import bottomCircle from "../images/Ellipse-32.png";
 
 const Login = () => {
-  const { toast } = useContext(ToastContext);
-  const { loginUser } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const { userSignIn } = useContext(Context);
+  const [userDetail, setUserDetail] = useState({ email: "", password: "" });
+  const [error, setError] = useState({});
+  const [submit, setSubmit] = useState(false);
 
-  const [credentials, setCredentials] = useState({
-    email: "",
-    password: "",
-  });
-
-  const handleInputChange = (event) => {
-    const { name, value } = event.target;
-
-    setCredentials({ ...credentials, [name]: value });
+  const handleChange = (e) => {
+    setUserDetail({ ...userDetail, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    console.log(credentials)
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setError(validate(userDetail));
+    setSubmit(true);
+  };
 
-    if (!credentials.email || !credentials.password) {
-      toast.error("please enter all the required fields!");
-      return;
+  useEffect(() => {
+    if (Object.keys(error).length === 0 && submit) {
+      userSignIn(userDetail);
     }
+  }, [error]);
 
-    loginUser(credentials);
+  const validate = (values) => {
+    const err = {};
+    const emailRegex =
+      /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/i;
+    if (!values.email) {
+      err.email = "*email is required";
+    } else if (!emailRegex.test(values.email)) {
+      err.email = "*email is invalid";
+    }
+    if (!values.password) {
+      err.password = "*password is required";
+    }
+    return err;
   };
 
   return (
-    <>
-      <h3>Login</h3>
+    <div className="container-1">
+      <img src={topCircle} alt="" className="top-circle" />
+      <div className="signUp-container">
+        <img src={dots} alt="" className="dots-1" />
+        <div className="signUp-header">
+          <h4>Logo</h4>
+          <p>Enter your credentials to access your account</p>
+        </div>
+        <form className="signUp-form" method="POST" onSubmit={handleSubmit}>
+          <div className="email">
+            <input
+              className="email-input"
+              type="text"
+              name="email"
+              placeholder="User ID"
+              onChange={handleChange}
+            />
+          </div>
+          <p style={{ color: "red" }}>{error.email}</p>
+          <div className="password">
+            <input
+              className="password-input"
+              type="password"
+              name="password"
+              placeholder="Password"
+              onChange={handleChange}
+            />
+          </div>
+          <p style={{ color: "red" }}>{error.password}</p>
+          <button className="button-1">Sign In</button>
+        </form>
+        <button className="button-2" onClick={() => navigate("/register")}>
+          Sign Up
+        </button>
 
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="emailInput" className="form-label mt-4">
-            Email address
-          </label>
-          <input
-            type="email"
-            className="form-control"
-            id="emailInput"
-            aria-describedby="emailHelp"
-            name="email"
-            value={credentials.email}
-            onChange={handleInputChange}
-            placeholder="johndoe@example.com"
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="passwordInput" className="form-label mt-4">
-            Password
-          </label>
-          <input
-            type="password"
-            className="form-control"
-            id="passwordInput"
-            name="password"
-            value={credentials.password}
-            onChange={handleInputChange}
-            placeholder="Enter Password"
-            required
-          />
-        </div>
-        <input type="submit" value="Login" className="btn btn-primary my-3" />
-        <p>
-          Don't have an account ? <Link to="/register">Create One</Link>
-        </p>
-      </form>
-    </>
+        <img src={dots} alt="" className="dots-2" />
+      </div>
+      <img src={bottomCircle} alt="circle" className="bottom-circle" />
+    </div>
   );
 };
 
